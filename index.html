@@ -162,6 +162,17 @@
     .ingredient-badge.dimmed {
       opacity: 0.42;
     }
+    .gal{--gal-bg:#e7d8c9;--gal-text:#231f20;--gal-label:#faf6f1;background:var(--gal-bg);padding:64px 0 0;overflow:hidden}
+.gal-title{font-weight:700;margin:0;padding:0 clamp(20px,3vw,48px);color:var(--gal-text);font-size:clamp(1.8rem,4vw,2.75rem);line-height:1.05}
+.gal-hint{margin:14px 0 28px;text-align:center;font-size:.8rem;letter-spacing:.08em;color:var(--gal-text);opacity:.8}
+.gal-track{display:flex;align-items:flex-end;gap:clamp(16px,3vw,40px);padding:0 clamp(20px,3vw,48px);overflow-x:auto;scrollbar-width:none;cursor:grab}
+.gal-track::-webkit-scrollbar{display:none}
+.gal-track.drag{cursor:grabbing}
+.gal-item{position:relative;flex:0 0 auto;margin:0}
+.gal-item:first-child{margin-left:auto}
+.gal-item:last-child{margin-right:auto}
+.gal-item img{display:block;max-width:none;height:clamp(260px,34vw,400px);width:auto;user-select:none;-webkit-user-drag:none}
+.gal-item figcaption{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--gal-label);color:#231f20;font-size:.8rem;padding:3px 10px;border:1px solid #231f20;border-radius:3px;white-space:nowrap}
   </style>
 </head>
 <body class="antialiased selection:bg-tukuDark selection:text-white">
@@ -903,6 +914,17 @@
       </div>
     </div>
   </section>
+  <!-- Galeri Foto -->
+<section id="galeri-foto" class="gal">
+  <h2 class="gal-title font-display uppercase">Galeri Pelanggan Kami</h2>
+  <p class="gal-hint">« Geser untuk lihat lainnya »</p>
+  <div class="gal-track" id="galTrack">
+    <figure class="gal-item"><img src="foto/foto-1.png" alt="Foto 1" draggable="false"><figcaption>Nama 1</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-2.png" alt="Foto 2" draggable="false"><figcaption>Nama 2</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-3.png" alt="Foto 3" draggable="false"><figcaption>Nama 3</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-4.png" alt="Foto 4" draggable="false"><figcaption>Nama 4</figcaption></figure>
+  </div>
+</section>
 
   <!-- Section Lokasi Kedai -->
   <section id="lokasi" class="bg-tukuWarm border-t border-stone-300 py-14 px-4 sm:px-6 lg:px-8">
@@ -1561,5 +1583,39 @@
       selectCategory('matcha');
     });
   </script>
+  <script>
+(() => {
+  const t = document.getElementById('galTrack');
+  if (!t) return;
+  const hint = document.querySelector('.gal-hint');
+  let speed = 0.5;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) speed = 0;
+  let pos = 0, dir = 1, hover = false, resumeAt = 0, drag = null;
+  const max = () => t.scrollWidth - t.clientWidth;
+  const pause = () => { resumeAt = Date.now() + 2500; };
+  const showHint = () => { if (hint) hint.style.visibility = max() > 1 ? 'visible' : 'hidden'; };
+  (function step() {
+    if (hover || Date.now() < resumeAt || speed === 0 || max() <= 1) {
+      pos = t.scrollLeft;
+    } else {
+      pos += speed * dir;
+      if (pos >= max()) { pos = max(); dir = -1; }
+      if (pos <= 0)     { pos = 0;     dir = 1;  }
+      t.scrollLeft = pos;
+    }
+    requestAnimationFrame(step);
+  })();
+  t.addEventListener('mouseenter', () => hover = true);
+  t.addEventListener('mouseleave', () => hover = false);
+  ['wheel', 'touchstart', 'touchmove'].forEach(e => t.addEventListener(e, pause, { passive: true }));
+  t.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse') return;
+    drag = { x: e.clientX, left: t.scrollLeft }; t.classList.add('drag'); pause();
+  });
+  addEventListener('pointermove', e => { if (drag) t.scrollLeft = drag.left - (e.clientX - drag.x); });
+  addEventListener('pointerup', () => { if (drag) { drag = null; t.classList.remove('drag'); pause(); } });
+  addEventListener('load', showHint); addEventListener('resize', showHint); showHint();
+})();
+</script>
 </body>
 </html>
