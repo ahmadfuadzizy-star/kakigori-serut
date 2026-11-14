@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galeri Kakigori Tsuki</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+
+/* ===== CSS GALERI (salin dari sini) ===== */
+.gal{--gal-bg:#b85f45;--gal-text:#1f1410;--gal-label:#f4efd2;
+  background:var(--gal-bg);padding:48px 0 0;overflow:hidden}
+.gal-title{margin:0;padding:0 5%;color:var(--gal-text);font-size:clamp(1.6rem,4vw,2.5rem);line-height:1.1}
+.gal-hint{margin:14px 0 28px;text-align:center;font-size:.8rem;letter-spacing:.08em;color:var(--gal-text);opacity:.8}
+.gal-track{display:flex;align-items:flex-end;gap:clamp(16px,3vw,40px);padding:0 5%;overflow-x:auto;scrollbar-width:none;cursor:grab}
+.gal-track::-webkit-scrollbar{display:none}
+.gal-track.drag{cursor:grabbing}
+.gal-item{position:relative;flex:0 0 auto;margin:0}
+.gal-item:first-child{margin-left:auto}
+.gal-item:last-child{margin-right:auto}
+.gal-item img{display:block;height:clamp(260px,34vw,400px);width:auto;user-select:none;-webkit-user-drag:none}
+.gal-item figcaption{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  background:var(--gal-label);color:#222;font-size:.8rem;padding:3px 10px;border:1px solid #222;border-radius:3px;white-space:nowrap}
+/* ===== akhir CSS ===== */
+</style>
+</head>
+<body>
+
+<!-- ===== HTML GALERI (salin dari sini) ===== -->
+<section id="galeri" class="gal">
+  <h2 class="gal-title">Galeri Pelanggan Kami</h2>
+  <p class="gal-hint">« Geser untuk lihat lainnya »</p>
+  <div class="gal-track" id="galTrack">
+    <figure class="gal-item"><img src="foto/foto-1.png" alt="Foto 1" draggable="false"><figcaption>Nama 1</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-2.png" alt="Foto 2" draggable="false"><figcaption>Nama 2</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-3.png" alt="Foto 3" draggable="false"><figcaption>Nama 3</figcaption></figure>
+    <figure class="gal-item"><img src="foto/foto-4.png" alt="Foto 4" draggable="false"><figcaption>Nama 4</figcaption></figure>
+  </div>
+</section>
+<!-- ===== akhir HTML ===== -->
+
+<!-- ===== JAVASCRIPT GALERI (salin dari sini) ===== -->
+<script>
+(() => {
+  const t = document.getElementById('galTrack');
+  if (!t) return;
+  const hint = document.querySelector('.gal-hint');
+  let speed = 0.5;                      // kecepatan geser otomatis (px per frame). Isi 0 untuk mematikan
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) speed = 0;
+  let pos = 0, dir = 1, hover = false, resumeAt = 0, drag = null;
+  const max = () => t.scrollWidth - t.clientWidth;
+  const pause = () => { resumeAt = Date.now() + 2500; };   // jeda 2,5 detik setelah disentuh/digeser
+  const showHint = () => { if (hint) hint.style.visibility = max() > 1 ? 'visible' : 'hidden'; };
+
+  (function step() {
+    if (hover || Date.now() < resumeAt || speed === 0 || max() <= 1) {
+      pos = t.scrollLeft;
+    } else {
+      pos += speed * dir;
+      if (pos >= max()) { pos = max(); dir = -1; }   // sampai ujung kanan -> balik ke kiri
+      if (pos <= 0)     { pos = 0;     dir = 1;  }   // sampai ujung kiri -> maju lagi
+      t.scrollLeft = pos;
+    }
+    requestAnimationFrame(step);
+  })();
+
+  t.addEventListener('mouseenter', () => hover = true);
+  t.addEventListener('mouseleave', () => hover = false);
+  ['wheel', 'touchstart', 'touchmove'].forEach(e => t.addEventListener(e, pause, { passive: true }));
+
+  // geser dengan mouse (tarik)
+  t.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse') return;
+    drag = { x: e.clientX, left: t.scrollLeft }; t.classList.add('drag'); pause();
+  });
+  addEventListener('pointermove', e => { if (drag) t.scrollLeft = drag.left - (e.clientX - drag.x); });
+  addEventListener('pointerup', () => { if (drag) { drag = null; t.classList.remove('drag'); pause(); } });
+
+  addEventListener('load', showHint); addEventListener('resize', showHint); showHint();
+})();
+</script>
+<!-- ===== akhir JavaScript ===== -->
+
+</body>
+</html>
